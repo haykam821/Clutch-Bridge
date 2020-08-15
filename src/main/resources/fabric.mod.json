@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "clutchbridge",
+	"version": "${version}",
+	"name": "Clutch Bridge",
+	"description": "A bridge block clutching minigame for Minecraft.",
+	"authors": [
+		"haykam821"
+	],
+	"contact": {
+		"homepage": "https://github.com/haykam821/Clutch-Bridge#readme",
+		"issues": "https://github.com/haykam821/Clutch-Bridge/issues"
+	},
+	"entrypoints": {
+		"main": [
+			"io.github.haykam821.clutchbridge.Main"
+		]
+	},
+	"license": "MIT",
+	"icon": "assets/clutchbridge/icon.png",
+	"depends": {
+		"fabricloader": ">=0.4.0"
+	}
+}

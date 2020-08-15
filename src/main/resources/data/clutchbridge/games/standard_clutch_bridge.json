@@ -1,0 +1,10 @@
+{
+	"type": "clutchbridge:clutch_bridge",
+	"map": {
+		"spacing": 16
+	},
+	"players": {
+		"min": 1,
+		"max": 32
+	}
+}

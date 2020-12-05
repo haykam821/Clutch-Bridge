@@ -3,6 +3,8 @@ package io.github.haykam821.clutchbridge.game.phase;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
+
 import io.github.haykam821.clutchbridge.game.ClutchBridgeConfig;
 import io.github.haykam821.clutchbridge.game.map.ClutchBridgeMap;
 import net.minecraft.block.Blocks;
@@ -21,8 +23,9 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.world.GameMode;
-import xyz.nucleoid.plasmid.game.Game;
-import xyz.nucleoid.plasmid.game.GameWorld;
+import xyz.nucleoid.plasmid.game.GameCloseReason;
+import xyz.nucleoid.plasmid.game.GameLogic;
+import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.event.GameOpenListener;
 import xyz.nucleoid.plasmid.game.event.GameTickListener;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
@@ -34,7 +37,7 @@ import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 
 public class ClutchBridgeActivePhase {
 	private final ServerWorld world;
-	private final GameWorld gameWorld;
+	private final GameSpace gameSpace;
 	private final ClutchBridgeConfig config;
 	private final Set<ServerPlayerEntity> players;
 	private boolean singleplayer;
@@ -42,9 +45,9 @@ public class ClutchBridgeActivePhase {
 	private boolean opened;
 	private ItemStack clutchBlock;
 
-	public ClutchBridgeActivePhase(GameWorld gameWorld, ClutchBridgeConfig config, Set<ServerPlayerEntity> players) {
-		this.world = gameWorld.getWorld();
-		this.gameWorld = gameWorld;
+	public ClutchBridgeActivePhase(GameSpace gameSpace, ClutchBridgeConfig config, Set<ServerPlayerEntity> players) {
+		this.world = gameSpace.getWorld();
+		this.gameSpace = gameSpace;
 		this.config = config;
 		this.players = players;
 		this.ticksUntilKnockback = this.config.getDelay();
@@ -64,7 +67,7 @@ public class ClutchBridgeActivePhase {
 		return builder.build();
 	}
 
-	public static void setRules(Game game) {
+	public static void setRules(GameLogic game) {
 		game.setRule(GameRule.CRAFTING, RuleResult.DENY);
 		game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
 		game.setRule(GameRule.HUNGER, RuleResult.DENY);
@@ -73,10 +76,10 @@ public class ClutchBridgeActivePhase {
 		game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 	}
 
-	public static void open(GameWorld gameWorld, ClutchBridgeMap map, ClutchBridgeConfig config) {
-		ClutchBridgeActivePhase phase = new ClutchBridgeActivePhase(gameWorld, config, gameWorld.getPlayers());
+	public static void open(GameSpace gameSpace, ClutchBridgeMap map, ClutchBridgeConfig config) {
+		ClutchBridgeActivePhase phase = new ClutchBridgeActivePhase(gameSpace, config, Sets.newHashSet(gameSpace.getPlayers()));
 
-		gameWorld.openGame(game -> {
+		gameSpace.openGame(game -> {
 			ClutchBridgeActivePhase.setRules(game);
 
 			// Listeners
@@ -145,11 +148,11 @@ public class ClutchBridgeActivePhase {
 			if (this.players.size() == 1 && this.singleplayer) return;
 			
 			Text endingMessage = this.getEndingMessage();
-			for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+			for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
 				player.sendMessage(endingMessage, false);
 			}
 
-			this.gameWorld.close();
+			this.gameSpace.close(GameCloseReason.FINISHED);
 		}
 	}
 
@@ -186,7 +189,7 @@ public class ClutchBridgeActivePhase {
 
 	private void eliminate(PlayerEntity eliminatedPlayer, boolean remove) {
 		Text message = eliminatedPlayer.getDisplayName().shallowCopy().append(" has been eliminated!").formatted(Formatting.RED);
-		for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
+		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
 			player.sendMessage(message, false);
 		}
 

@@ -15,7 +15,7 @@ public class ClutchBridgeMapConfig {
 	public static final Codec<ClutchBridgeMapConfig> CODEC = RecordCodecBuilder.create(instance -> {
 		return instance.group(
 			Codec.INT.fieldOf("spacing").forGetter(map -> map.spacing),
-			BlockStateProvider.CODEC.optionalFieldOf("state_provider", new SimpleBlockStateProvider(DEFAULT_STATE)).forGetter(map -> map.stateProvider)
+			BlockStateProvider.TYPE_CODEC.optionalFieldOf("state_provider", new SimpleBlockStateProvider(DEFAULT_STATE)).forGetter(map -> map.stateProvider)
 		).apply(instance, ClutchBridgeMapConfig::new);
 	});
 

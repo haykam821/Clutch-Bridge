@@ -32,7 +32,6 @@ import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.event.UseBlockListener;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
-import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 
 public class ClutchBridgeActivePhase {
@@ -68,12 +67,12 @@ public class ClutchBridgeActivePhase {
 	}
 
 	public static void setRules(GameLogic game) {
-		game.setRule(GameRule.CRAFTING, RuleResult.DENY);
-		game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-		game.setRule(GameRule.HUNGER, RuleResult.DENY);
-		game.setRule(GameRule.PORTALS, RuleResult.DENY);
-		game.setRule(GameRule.PVP, RuleResult.DENY);
-		game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
+		game.deny(GameRule.CRAFTING);
+		game.deny(GameRule.FALL_DAMAGE);
+		game.deny(GameRule.HUNGER);
+		game.deny(GameRule.PORTALS);
+		game.deny(GameRule.PVP);
+		game.deny(GameRule.THROW_ITEMS);
 	}
 
 	public static void open(GameSpace gameSpace, ClutchBridgeMap map, ClutchBridgeConfig config) {
@@ -83,11 +82,11 @@ public class ClutchBridgeActivePhase {
 			ClutchBridgeActivePhase.setRules(game);
 
 			// Listeners
-			game.on(GameOpenListener.EVENT, phase::open);
-			game.on(GameTickListener.EVENT, phase::tick);
-			game.on(PlayerAddListener.EVENT, phase::addPlayer);
-			game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
-			game.on(UseBlockListener.EVENT, phase::useBlock);
+			game.listen(GameOpenListener.EVENT, phase::open);
+			game.listen(GameTickListener.EVENT, phase::tick);
+			game.listen(PlayerAddListener.EVENT, phase::addPlayer);
+			game.listen(PlayerDeathListener.EVENT, phase::onPlayerDeath);
+			game.listen(UseBlockListener.EVENT, phase::useBlock);
 		});
 	}
 

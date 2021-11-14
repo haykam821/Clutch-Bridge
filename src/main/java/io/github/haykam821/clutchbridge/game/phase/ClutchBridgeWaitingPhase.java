@@ -38,16 +38,16 @@ public class ClutchBridgeWaitingPhase {
 			.setDefaultGameMode(GameMode.ADVENTURE);
 
 		return context.createOpenProcedure(worldConfig, game -> {
-			ClutchBridgeWaitingPhase phase = new ClutchBridgeWaitingPhase(game.getSpace(), map, context.getConfig());
+			ClutchBridgeWaitingPhase phase = new ClutchBridgeWaitingPhase(game.getGameSpace(), map, context.getConfig());
 
 			GameWaitingLobby.applyTo(game, context.getConfig().getPlayerConfig());
 			ClutchBridgeActivePhase.setRules(game);
 
 			// Listeners
-			game.on(PlayerAddListener.EVENT, phase::addPlayer);
-			game.on(PlayerDeathListener.EVENT, phase::onPlayerDeath);
-			game.on(OfferPlayerListener.EVENT, phase::offerPlayer);
-			game.on(RequestStartListener.EVENT, phase::requestStart);
+			game.listen(PlayerAddListener.EVENT, phase::addPlayer);
+			game.listen(PlayerDeathListener.EVENT, phase::onPlayerDeath);
+			game.listen(OfferPlayerListener.EVENT, phase::offerPlayer);
+			game.listen(RequestStartListener.EVENT, phase::requestStart);
 		});
 	}
 

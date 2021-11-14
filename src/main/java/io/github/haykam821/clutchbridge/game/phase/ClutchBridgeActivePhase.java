@@ -22,17 +22,19 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
+import xyz.nucleoid.plasmid.game.GameActivity;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
-import xyz.nucleoid.plasmid.game.GameLogic;
 import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.event.GameOpenListener;
-import xyz.nucleoid.plasmid.game.event.GameTickListener;
-import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
-import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
-import xyz.nucleoid.plasmid.game.event.UseBlockListener;
-import xyz.nucleoid.plasmid.game.rule.GameRule;
+import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.game.player.PlayerOffer;
+import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
+import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
+import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
 public class ClutchBridgeActivePhase {
 	private final ServerWorld world;
@@ -41,11 +43,10 @@ public class ClutchBridgeActivePhase {
 	private final Set<ServerPlayerEntity> players;
 	private boolean singleplayer;
 	private int ticksUntilKnockback;
-	private boolean opened;
 	private ItemStack clutchBlock;
 
-	public ClutchBridgeActivePhase(GameSpace gameSpace, ClutchBridgeConfig config, Set<ServerPlayerEntity> players) {
-		this.world = gameSpace.getWorld();
+	public ClutchBridgeActivePhase(GameSpace gameSpace, ServerWorld world, ClutchBridgeConfig config, Set<ServerPlayerEntity> players) {
+		this.world = world;
 		this.gameSpace = gameSpace;
 		this.config = config;
 		this.players = players;
@@ -66,37 +67,37 @@ public class ClutchBridgeActivePhase {
 		return builder.build();
 	}
 
-	public static void setRules(GameLogic game) {
-		game.deny(GameRule.CRAFTING);
-		game.deny(GameRule.FALL_DAMAGE);
-		game.deny(GameRule.HUNGER);
-		game.deny(GameRule.PORTALS);
-		game.deny(GameRule.PVP);
-		game.deny(GameRule.THROW_ITEMS);
+	public static void setRules(GameActivity activity) {
+		activity.deny(GameRuleType.CRAFTING);
+		activity.deny(GameRuleType.FALL_DAMAGE);
+		activity.deny(GameRuleType.HUNGER);
+		activity.deny(GameRuleType.PORTALS);
+		activity.deny(GameRuleType.PVP);
+		activity.deny(GameRuleType.THROW_ITEMS);
 	}
 
-	public static void open(GameSpace gameSpace, ClutchBridgeMap map, ClutchBridgeConfig config) {
-		ClutchBridgeActivePhase phase = new ClutchBridgeActivePhase(gameSpace, config, Sets.newHashSet(gameSpace.getPlayers()));
+	public static void open(GameSpace gameSpace, ServerWorld world, ClutchBridgeMap map, ClutchBridgeConfig config) {
+		ClutchBridgeActivePhase phase = new ClutchBridgeActivePhase(gameSpace, world, config, Sets.newHashSet(gameSpace.getPlayers()));
 
-		gameSpace.openGame(game -> {
-			ClutchBridgeActivePhase.setRules(game);
+		gameSpace.setActivity(activity -> {
+			ClutchBridgeActivePhase.setRules(activity);
 
 			// Listeners
-			game.listen(GameOpenListener.EVENT, phase::open);
-			game.listen(GameTickListener.EVENT, phase::tick);
-			game.listen(PlayerAddListener.EVENT, phase::addPlayer);
-			game.listen(PlayerDeathListener.EVENT, phase::onPlayerDeath);
-			game.listen(UseBlockListener.EVENT, phase::useBlock);
+			activity.listen(GameActivityEvents.ENABLE, phase::enable);
+			activity.listen(GameActivityEvents.TICK, phase::tick);
+			activity.listen(GamePlayerEvents.OFFER, phase::offerPlayer);
+			activity.listen(GamePlayerEvents.REMOVE, phase::removePlayer);
+			activity.listen(PlayerDeathEvent.EVENT, phase::onPlayerDeath);
+			activity.listen(BlockUseEvent.EVENT, phase::useBlock);
 		});
 	}
 
-	public void open() {
-		this.opened = true;
+	public void enable() {
 		this.singleplayer = this.players.size() == 1;
 
 		int x = 0;
  		for (ServerPlayerEntity player : this.players) {
-			player.setGameMode(GameMode.ADVENTURE);
+			player.changeGameMode(GameMode.ADVENTURE);
 			this.giveClutchBlocks(player);
 
 			ClutchBridgeActivePhase.spawn(x, this.world, player);
@@ -163,21 +164,23 @@ public class ClutchBridgeActivePhase {
 		return new LiteralText("Nobody won the game!").formatted(Formatting.GOLD);
 	}
 
-	private void setSpectator(PlayerEntity player) {
-		player.setGameMode(GameMode.SPECTATOR);
+	private void setSpectator(ServerPlayerEntity player) {
+		player.changeGameMode(GameMode.SPECTATOR);
 	}
 
-	private void addPlayer(PlayerEntity player) {
-		if (!this.players.contains(player)) {
-			this.setSpectator(player);
-		} else if (this.opened) {
-			this.eliminate(player, true);
-		}
+	private PlayerOfferResult offerPlayer(PlayerOffer offer) {
+		return offer.accept(this.world, ClutchBridgeActivePhase.getSpawnPos(0)).and(() -> {
+			this.setSpectator(offer.player());
+		});
+	}
+
+	private void removePlayer(ServerPlayerEntity player) {
+		this.eliminate(player, true);
 	}
 
 	private void giveClutchBlocks(ServerPlayerEntity player) {
 		for (int slot = 0; slot < 9; slot++) {
-			player.inventory.setStack(slot, this.clutchBlock.copy());
+			player.getInventory().setStack(slot, this.clutchBlock.copy());
 		}
 	}
 	
@@ -186,7 +189,7 @@ public class ClutchBridgeActivePhase {
 		return ActionResult.PASS;
 	}
 
-	private void eliminate(PlayerEntity eliminatedPlayer, boolean remove) {
+	private void eliminate(ServerPlayerEntity eliminatedPlayer, boolean remove) {
 		Text message = eliminatedPlayer.getDisplayName().shallowCopy().append(" has been eliminated!").formatted(Formatting.RED);
 		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
 			player.sendMessage(message, false);
@@ -198,12 +201,17 @@ public class ClutchBridgeActivePhase {
 		this.setSpectator(eliminatedPlayer);
 	}
 
-	private ActionResult onPlayerDeath(PlayerEntity player, DamageSource source) {
+	private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
 		this.eliminate(player, true);
 		return ActionResult.SUCCESS;
 	}
 
+	public static Vec3d getSpawnPos(int x) {
+		return new Vec3d(x + 0.5, 65, 0.5);
+	}
+
 	public static void spawn(int x, ServerWorld world, ServerPlayerEntity player) {
-		player.teleport(world, x + 0.5, 65, 0.5, 0, 0);
+		Vec3d spawnPos = ClutchBridgeActivePhase.getSpawnPos(x);
+		player.teleport(world, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 0, 0);
 	}
 }

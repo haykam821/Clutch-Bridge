@@ -6,7 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.haykam821.clutchbridge.game.map.ClutchBridgeMapConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import xyz.nucleoid.plasmid.game.config.PlayerConfig;
+import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
 
 public class ClutchBridgeConfig {
 	public static final Codec<ClutchBridgeConfig> CODEC = RecordCodecBuilder.create(instance -> {

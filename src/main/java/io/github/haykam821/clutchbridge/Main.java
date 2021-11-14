@@ -10,7 +10,7 @@ public class Main implements ModInitializer {
 	public static final String MOD_ID = "clutchbridge";
 
 	private static final Identifier CLUTCH_BRIDGE_ID = new Identifier(MOD_ID, "clutch_bridge");
-	public static final GameType<ClutchBridgeConfig> CLUTCH_BRIDGE_TYPE = GameType.register(CLUTCH_BRIDGE_ID, ClutchBridgeWaitingPhase::open, ClutchBridgeConfig.CODEC);
+	public static final GameType<ClutchBridgeConfig> CLUTCH_BRIDGE_TYPE = GameType.register(CLUTCH_BRIDGE_ID, ClutchBridgeConfig.CODEC, ClutchBridgeWaitingPhase::open);
 
 	@Override
 	public void onInitialize() {

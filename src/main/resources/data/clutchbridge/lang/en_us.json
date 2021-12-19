@@ -1,4 +1,7 @@
 {
 	"game.clutchbridge.standard_clutch_bridge": "Clutch Bridge",
-	"gameType.clutchbridge.clutch_bridge": "Clutch Bridge"
+	"gameType.clutchbridge.clutch_bridge": "Clutch Bridge",
+	"text.clutchbridge.eliminated": "%s has been eliminated!",
+	"text.clutchbridge.no_winners": "Nobody won the game!",
+	"text.clutchbridge.win": "%s has won the game!"
 }

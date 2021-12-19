@@ -16,8 +16,8 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
@@ -159,9 +159,9 @@ public class ClutchBridgeActivePhase {
 	private Text getEndingMessage() {
 		if (this.players.size() == 1) {
 			PlayerEntity winner = this.players.iterator().next();
-			return winner.getDisplayName().shallowCopy().append(" has won the game!").formatted(Formatting.GOLD);
+			return new TranslatableText("text.clutchbridge.win", winner.getDisplayName()).formatted(Formatting.GOLD);
 		}
-		return new LiteralText("Nobody won the game!").formatted(Formatting.GOLD);
+		return new TranslatableText("text.clutchbridge.no_winners").formatted(Formatting.GOLD);
 	}
 
 	private void setSpectator(ServerPlayerEntity player) {
@@ -190,7 +190,7 @@ public class ClutchBridgeActivePhase {
 	}
 
 	private void eliminate(ServerPlayerEntity eliminatedPlayer, boolean remove) {
-		Text message = eliminatedPlayer.getDisplayName().shallowCopy().append(" has been eliminated!").formatted(Formatting.RED);
+		Text message = new TranslatableText("text.clutchbridge.eliminated", eliminatedPlayer.getDisplayName()).formatted(Formatting.RED);
 		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
 			player.sendMessage(message, false);
 		}

@@ -7,6 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import xyz.nucleoid.plasmid.game.world.generator.GameChunkGenerator;
 
@@ -19,7 +20,7 @@ public class ClutchBridgeChunkGenerator extends GameChunkGenerator {
 	}
 
 	@Override
-	public void buildSurface(ChunkRegion region, Chunk chunk) {
+	public void buildSurface(ChunkRegion region, StructureAccessor structures, Chunk chunk) {
 		BlockStateProvider stateProvider = this.mapConfig.getStateProvider();
 		Random random = region.getRandom();
 		

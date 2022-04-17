@@ -8,14 +8,13 @@ import net.minecraft.block.Blocks;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
-import net.minecraft.world.gen.stateprovider.SimpleBlockStateProvider;
 
 public class ClutchBridgeMapConfig {
 	private static final BlockState DEFAULT_STATE = Blocks.MAGENTA_GLAZED_TERRACOTTA.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH);
 	public static final Codec<ClutchBridgeMapConfig> CODEC = RecordCodecBuilder.create(instance -> {
 		return instance.group(
 			Codec.INT.fieldOf("spacing").forGetter(map -> map.spacing),
-			BlockStateProvider.TYPE_CODEC.optionalFieldOf("state_provider", new SimpleBlockStateProvider(DEFAULT_STATE)).forGetter(map -> map.stateProvider)
+			BlockStateProvider.TYPE_CODEC.optionalFieldOf("state_provider", BlockStateProvider.of(DEFAULT_STATE)).forGetter(map -> map.stateProvider)
 		).apply(instance, ClutchBridgeMapConfig::new);
 	});
 

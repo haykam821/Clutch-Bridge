@@ -1,13 +1,13 @@
 package io.github.haykam821.clutchbridge.game.map;
 
-import java.util.Random;
-
 import net.minecraft.block.BlockState;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.StructureAccessor;
+import net.minecraft.world.gen.noise.NoiseConfig;
 import net.minecraft.world.gen.stateprovider.BlockStateProvider;
 import xyz.nucleoid.plasmid.game.world.generator.GameChunkGenerator;
 
@@ -20,7 +20,7 @@ public class ClutchBridgeChunkGenerator extends GameChunkGenerator {
 	}
 
 	@Override
-	public void buildSurface(ChunkRegion region, StructureAccessor structures, Chunk chunk) {
+	public void buildSurface(ChunkRegion region, StructureAccessor structures, NoiseConfig noiseConfig, Chunk chunk) {
 		BlockStateProvider stateProvider = this.mapConfig.getStateProvider();
 		Random random = region.getRandom();
 		
@@ -36,7 +36,7 @@ public class ClutchBridgeChunkGenerator extends GameChunkGenerator {
 			for (int z = 0; z < 16; z++) {
 				pos.setZ(startZ + z);
 
-				BlockState state = stateProvider.getBlockState(random, pos);
+				BlockState state = stateProvider.get(random, pos);
 				region.setBlockState(pos, state, 3);
 			}
 		}

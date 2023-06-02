@@ -42,6 +42,7 @@ public class ClutchBridgeActivePhase {
 	private final Set<ServerPlayerEntity> players;
 	private boolean singleplayer;
 	private int ticksUntilKnockback;
+	private int ticksUntilClose = -1;
 	private ItemStack clutchBlock;
 
 	public ClutchBridgeActivePhase(GameSpace gameSpace, ServerWorld world, ClutchBridgeConfig config, Set<ServerPlayerEntity> players) {
@@ -121,6 +122,16 @@ public class ClutchBridgeActivePhase {
 	}
 
 	private void tick() {
+		// Decrease ticks until game end to zero
+		if (this.isGameEnding()) {
+			if (this.ticksUntilClose == 0) {
+				this.gameSpace.close(GameCloseReason.FINISHED);
+			}
+
+			this.ticksUntilClose -= 1;
+			return;
+		}
+
 		this.ticksUntilKnockback -= 1;
 		if (this.ticksUntilKnockback <= 0) {
 			double angle = this.world.getRandom().nextDouble() * 2 * Math.PI;
@@ -151,8 +162,12 @@ public class ClutchBridgeActivePhase {
 				player.sendMessage(endingMessage, false);
 			}
 
-			this.gameSpace.close(GameCloseReason.FINISHED);
+			this.ticksUntilClose = this.config.getTicksUntilClose().get(this.world.getRandom());
 		}
+	}
+
+	private boolean isGameEnding() {
+		return this.ticksUntilClose >= 0;
 	}
 
 	private Text getEndingMessage() {
@@ -189,6 +204,8 @@ public class ClutchBridgeActivePhase {
 	}
 
 	private void eliminate(ServerPlayerEntity eliminatedPlayer, boolean remove) {
+		if (this.isGameEnding()) return;
+
 		Text message = Text.translatable("text.clutchbridge.eliminated", eliminatedPlayer.getDisplayName()).formatted(Formatting.RED);
 		for (ServerPlayerEntity player : this.gameSpace.getPlayers()) {
 			player.sendMessage(message, false);
